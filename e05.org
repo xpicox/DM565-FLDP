@@ -1,0 +1,1049 @@
+#+STARTUP: showall
+#+STARTUP: hideblocks
+#+PROPERTY: header-args:sh :results output :session ex
+* Tree-Like Data Formats. Computation-Oriented Command-Line Tools.
+#+begin_src sh :cache yes
+  curl https://imada.sdu.dk/~kslarsen/dm565/Files/participants.txt --output participants.txt --silent
+#+end_src
+
+#+begin_src sh
+  export LC_CTYPE="UTF-8"
+#+end_src
+
+#+RESULTS[a4bdacb1c21691aa75eef26bb54719198077fb40]:
+ 
+** 1 
+   Use the command-line tool sort to sort on the first names. Which effect does
+   sort -k 2 have? Now sort on the email addresses.
+
+   #+begin_src sh
+     cat participants.txt
+   #+end_src
+
+   #+RESULTS:
+   : Anders Nicolai Knudsen Email: anknu18@student.sdu.dk
+   : Marie Gabriele Christ Email: machr14@student.sdu.dk
+   : Abyayananda Maiti Email: abmai13@student.sdu.dk
+   : Sushmita Gupta Email: sugup13@student.sdu.dk
+   : Martin Rud Ehmsen Email: maehm10@student.sdu.dk
+   : Bárður Árantsson Email: baara07@student.sdu.dk
+   : Jens Svalgaard Kohrt Email: jeko404@student.sdu.dk
+   : Morten Nyhave Nielsen Email: monie02@student.sdu.dk
+   : Lars Jacobsen Email: lajac01@student.sdu.dk
+
+   #+begin_src sh
+     sort -k1 participants.txt
+   #+end_src
+
+   #+RESULTS:
+   : Abyayananda Maiti Email: abmai13@student.sdu.dk
+   : Anders Nicolai Knudsen Email: anknu18@student.sdu.dk
+   : Bárður Árantsson Email: baara07@student.sdu.dk
+   : Jens Svalgaard Kohrt Email: jeko404@student.sdu.dk
+   : Lars Jacobsen Email: lajac01@student.sdu.dk
+   : Marie Gabriele Christ Email: machr14@student.sdu.dk
+   : Martin Rud Ehmsen Email: maehm10@student.sdu.dk
+   : Morten Nyhave Nielsen Email: monie02@student.sdu.dk
+   : Sushmita Gupta Email: sugup13@student.sdu.dk
+
+   
+   #+begin_src sh
+     sort -k2 participants.txt
+   #+end_src
+
+   #+RESULTS:
+   : Marie Gabriele Christ Email: machr14@student.sdu.dk
+   : Sushmita Gupta Email: sugup13@student.sdu.dk
+   : Lars Jacobsen Email: lajac01@student.sdu.dk
+   : Abyayananda Maiti Email: abmai13@student.sdu.dk
+   : Anders Nicolai Knudsen Email: anknu18@student.sdu.dk
+   : Morten Nyhave Nielsen Email: monie02@student.sdu.dk
+   : Martin Rud Ehmsen Email: maehm10@student.sdu.dk
+   : Jens Svalgaard Kohrt Email: jeko404@student.sdu.dk
+   : Bárður Árantsson Email: baara07@student.sdu.dk
+   
+   #+begin_src sh
+     sort -t: -k2 participants.txt
+   #+end_src
+   
+   #+RESULTS:
+   : Abyayananda Maiti Email: abmai13@student.sdu.dk
+   : Anders Nicolai Knudsen Email: anknu18@student.sdu.dk
+   : Bárður Árantsson Email: baara07@student.sdu.dk
+   : Jens Svalgaard Kohrt Email: jeko404@student.sdu.dk
+   : Lars Jacobsen Email: lajac01@student.sdu.dk
+   : Marie Gabriele Christ Email: machr14@student.sdu.dk
+   : Martin Rud Ehmsen Email: maehm10@student.sdu.dk
+   : Morten Nyhave Nielsen Email: monie02@student.sdu.dk
+   : Sushmita Gupta Email: sugup13@student.sdu.dk
+
+** 2
+   Use tr twice to delete ":" and change "@" to "$".
+
+   #+begin_src sh
+     cat participants.txt | tr -d ':' | tr "@" "$"
+   #+end_src
+
+   #+RESULTS:
+   : Anders Nicolai Knudsen Email anknu18$student.sdu.dk
+   : Marie Gabriele Christ Email machr14$student.sdu.dk
+   : Abyayananda Maiti Email abmai13$student.sdu.dk
+   : Sushmita Gupta Email sugup13$student.sdu.dk
+   : Martin Rud Ehmsen Email maehm10$student.sdu.dk
+   : Bárður Árantsson Email baara07$student.sdu.dk
+   : Jens Svalgaard Kohrt Email jeko404$student.sdu.dk
+   : Morten Nyhave Nielsen Email monie02$student.sdu.dk
+   : Lars Jacobsen Email lajac01$student.sdu.dk
+
+** 3
+   Use cut several times to remove anything other than the user name, i.e.,
+   first remove @student.sdu.dk, and then continue.
+
+   #+begin_comment
+   I used the tee command just for convenience.
+
+   From the man page for tee:
+   
+   The tee utility copies standard input to standard output, making a copy in
+   zero or more files.
+   #+end_comment
+   
+   #+begin_src sh :cache yes
+     cat participants.txt | cut -d@ -f1 | cut -d: -f2 |\
+         cut -d' ' -f2 | tee user.txt
+   #+end_src
+
+   #+RESULTS[406e4c52335a37e1f0a4b09e0dbbfd0ccaa56296]:
+   : anknu18
+   : machr14
+   : abmai13
+   : sugup13
+   : maehm10
+   : baara07
+   : jeko404
+   : monie02
+   : lajac01
+
+
+
+   
+  
+** 4
+   Make a file with as many copies of the line @student.sdu.dk as there are
+   lines in the original file. You can of course find out how many lines are
+   needed using wc. ツ One way to create that file is to use seq n, where n is
+   the number of lines you need, followed by an appropriate sed substitution
+   using a regular expression. Now paste this file together with the file of
+   user names from above to create full email addresses again.
+
+   ~xargs~ -- see man xargs
+   
+   #+begin_src sh :cache yes
+     cat participants.txt | wc -l | xargs seq | sed -E 's/^[[:digit:]]+/@student.sdu.dk/' | tee domain.txt
+   #+end_src
+
+   #+RESULTS[215cf34922846091b6778ba26149a5e93359e975]:
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+   : @student.sdu.dk
+
+   #+begin_src sh
+     paste -d'\0' user.txt domain.txt | tee mail.txt
+   #+end_src
+
+   #+RESULTS:
+   : anknu18@student.sdu.dk
+   : machr14@student.sdu.dk
+   : abmai13@student.sdu.dk
+   : sugup13@student.sdu.dk
+   : maehm10@student.sdu.dk
+   : baara07@student.sdu.dk
+   : jeko404@student.sdu.dk
+   : monie02@student.sdu.dk
+   : lajac01@student.sdu.dk
+
+** 5
+   Use gawk to put a line number and a colon in front of the full emails from
+   above. Remove the space following the colon in the original file, and then
+   join these two results on the email address field.
+
+   #+begin_src sh
+     cat mail.txt | awk 'BEGIN {OFS=""} { print NR, ":", $0 }' | \
+         tee numbered-email.txt
+   #+end_src
+
+   #+RESULTS:
+   : 1:anknu18@student.sdu.dk
+   : 2:machr14@student.sdu.dk
+   : 3:abmai13@student.sdu.dk
+   : 4:sugup13@student.sdu.dk
+   : 5:maehm10@student.sdu.dk
+   : 6:baara07@student.sdu.dk
+   : 7:jeko404@student.sdu.dk
+   : 8:monie02@student.sdu.dk
+   : 9:lajac01@student.sdu.dk
+
+   #+begin_src sh
+     cat participants.txt | sed 's/: /:/' | \
+         join -t: -12 -22 -o1.1,2.1,0 numbered-email.txt -
+   #+end_src
+
+   #+RESULTS:
+   : 1:Anders Nicolai Knudsen Email:anknu18@student.sdu.dk
+   : 2:Marie Gabriele Christ Email:machr14@student.sdu.dk
+   : 3:Abyayananda Maiti Email:abmai13@student.sdu.dk
+   : 4:Sushmita Gupta Email:sugup13@student.sdu.dk
+   : 5:Martin Rud Ehmsen Email:maehm10@student.sdu.dk
+   : 6:Bárður Árantsson Email:baara07@student.sdu.dk
+   : 7:Jens Svalgaard Kohrt Email:jeko404@student.sdu.dk
+   : 8:Morten Nyhave Nielsen Email:monie02@student.sdu.dk
+   : 9:Lars Jacobsen Email:lajac01@student.sdu.dk
+
+** 6
+   Consider the UTF-8 encoded files from last time. Using command-line tools,
+   place a filter before wc so that characters (allowing the Danish ones) are
+   counted, as opposed to counting bytes, as wc does.
+
+   #+begin_src sh
+     cat File_Ex_UTF8.txt | sed -E 's/./a/g' | wc
+   #+end_src
+
+   #+RESULTS:
+   : 1       1      11
+
+** 7
+   Consider the different end-of-line formats from last time. Write sed code
+   that translates from MS-DOS to Unix style and the other way around.
+
+   Linux solution:
+   #+begin_src sh
+     cat File_Ex_MS-DOS_Eol.txt | sed -E 's/\r$//g' | od -tcuC
+   #+end_src
+   MacOS solution:
+   #+begin_src sh
+     cat File_Ex_MS-DOS_Eol.txt | sed "s/$(printf '\r')\$//" | od -tcuC
+   #+end_src
+
+   #+RESULTS:
+   : 0000000    I   t       a   l   l       e   n   d   s   ;  \n   b   u   t
+   :            73 116  32  97 108 108  32 101 110 100 115  59  10  98 117 116
+   : 0000020        h   o   w   ?  \n                                        
+   :            32 104 111 119  63  10                                        
+   : 0000026
+
+   Linux solution:
+   #+begin_src sh
+     cat File_Ex_MS-DOS_Eol.txt | sed -E 's/$/\r/g' | od -tcuC
+   #+end_src
+   MacOS solution:
+   #+begin_src sh
+     cat File_Ex_Unix_Eol.txt | sed -E "s/$/$(printf '\r')/" | od -tcuC
+   #+end_src
+
+   #+RESULTS:
+   : 0000000    I   t       a   l   l       e   n   d   s   ;  \r  \n   b   u
+   :            73 116  32  97 108 108  32 101 110 100 115  59  13  10  98 117
+   : 0000020    t       h   o   w   ?  \r  \n                                
+   :           116  32 104 111 119  63  13  10                                
+   : 0000030
+   
+** 8
+   Mask credit card numbers so that 1234 5678 9012 3456
+   becomes **** **** **** 3456.
+
+   #+begin_src sh
+     echo "1234 5678 9012 3456" | awk '
+          /^[0-9]{4}( [0-9]{4}){3}$/{
+              $1="****"; $2="****"; $3="****"; print
+          }' 
+   #+end_src
+
+   #+RESULTS:
+   : 
+   : > > **** **** **** 3456
+
+   #+begin_src sh
+     echo "1234 5678 9012 3456" | sed -E 's/[0-9]{4} /**** /g'
+   #+end_src
+
+   #+RESULTS:
+   : **** **** **** 3456
+   
+** 9
+   With input
+   
+   Name,Team,First Test,Second Test,Third Test
+   Tom,Red,5,17,22
+   Joe,Green,3,14,22
+   Maria,Blue,6,18,21
+   Fred,Blue,2,15,23
+   Carlos,Red,-1,15,24
+   Phuong,Green,7,19,21
+   Enrique,Green,3,16,20
+   Nancy,Red,9,12,24
+
+   use gawk to create individual, test, and team averages (-1 represents a
+   non-existing result and should simply be ignored) as
+
+   Name         Average
+   ----         -------
+   Tom            14.67
+   Joe            13.00
+   Maria          15.00
+   Fred           13.33
+   Carlos         19.50
+   Phuong         15.67
+   Enrique        13.00
+   Nancy          15.00
+   ----------------------
+   Average, Test 1:  5.00
+   Average, Test 2: 15.75
+   Average, Test 3: 22.12
+   ----------------------
+   Average, Red: 16.00
+   Average, Blue: 14.17
+   Average, Green: 13.89
+
+   Write the program on a script file and run using the -f option to gawk. Do
+   not try to write the entire program from the beginning. Start by printing the
+   names, then try to compute the average of each individual and print that, and so
+   on. This is proptotyping! The formatting is the least important.
+
+   #+begin_src sh
+      awk -f program.awk test.csv
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+   Name           Average
+   ----           -------
+   Tom              14.67
+   Joe              13.00
+   Maria            15.00
+   Fred             13.33
+   Carlos           19.50
+   Phuong           15.67
+   Enrique          13.00
+   Nancy            15.00
+   ----------------------
+   Average, Test 1:  5.00
+   Average, Test 2: 15.75
+   Average, Test 3: 22.12
+   ----------------------
+   Average, Green : 13.89
+   Average, Blue  : 14.17
+   Average, Red   : 16.00
+   #+end_example
+
+   
+** 10
+   What happens if the field separator is the empty string? Write an gawk script
+   that counts occurrences of the normal (English) letters and digits and writes
+   each letter and digit and the number of times it occurred. Now to use this
+   for programs, only count in lines that are not comment lines (you can decide
+   what a comment line starts with). Thus, you have to use a pattern.
+
+** 11
+   Use tr, sort, and uniq to take an input (text) file and produce a list of
+   words and their frequencies in the text sorted in order of highest
+   frequencies first.
+
+   #+NAME: turing
+   #+begin_src sh :cache yes
+     curl http://sed.sourceforge.net/grabbag/scripts/turing.txt --output turing.txt --silent
+   #+end_src
+
+   #+RESULTS[a5142f8614b5694394b532ab2a0864d75b6db7ca]: turing
+   #+begin_example
+   Implementation of a Turing Machine as Sed Script
+
+                        Christophe Blaess, 2001.
+
+
+     This Sed script emulates a Turing machine, reading its instruction
+     table on the standard input and writing the content of the tape on
+     the standard output.
+
+
+   Introduction
+   ------------
+
+   A Turing machine is a very simple computation device, introduced by Alan
+   Turing in 1935.  This  machine  is  made  of a magnetic tape and a read-
+   write head,  which can move along the tape.  This tape is  divided  into
+   cells, each of them could be  empty, or could contain a symbol  (letter,
+   digit, etc.).  The tape is theorically infinite,  but the number of non-
+   empty cells is finite  (this is important because we  can  always  start
+   with a blank tape and use a finite number of program steps to initialize
+   the tape).
+
+   The  head  can move to the left or to the right one cell at a time.  The
+   Turing  machine contains also a cell of memory that can accept a symbol.
+   This memory represents the state of the machine.
+
+   The behavior of the machine  at a given moment  is totally determined by
+   its state  and the symbole lying in front of the read head.  The machine
+   is programmable: we insert a list of instructions, i.e. a list of action
+   to perform  for  each  state  and  each possible symbol.  An instruction
+   contains a new symbol  to  write on the tape in place of the previous, a
+   direction of movement for the head, and a new state for the machine.
+
+   The machine act as follows:
+
+   - The machine reads the content of the cell being in front of the head.
+     If there  isn't any instruction corresponding  to this symbol and to
+     the current state of the machine, it stops.
+
+   - The  machine  writes on  the tape the new symbol as specified in the
+     selected instruction, erasing the previous content of the cell. This
+     can be the same symbol.
+
+   - The machine moves the read-write head one step to the left or to the
+     right according to the direction  in the instruction.  In our imple-
+     mentation, we add the possibility to keep the head on the same cell.
+
+   - The machine loads  its memory with  the  symbol representing the new
+     state. If there isn't any instruction for this state of the machine,
+     a  final  stable  state  has  been  reached,  and  the machine stops.
+     Otherwise the cycle restarts.
+
+   The result of the execution of a  Turing  machine is the printing of the
+   tape.  For  teaching  purposes,  we choose  to  display this tape at the
+   begining of each cycle.
+
+
+   The instructions are given as five characters strings:
+
+     - The first character is the current state,  i.e. the symbol corres-
+       ponding to the state of the machine at the beginning of the cycle.
+       In our implementation a symbol can be a letter,  a digit,  or  any
+   ' and `:'.  At the beginning, the
+       state of the machine is always `0'.
+
+     - The  second  character  is the symbol read on the tape.  The cells
+   ' and
+       `:'. By default a blank cell appears as ` '.
+
+   The first two fields select an instruction,  the next ones represent the
+   action to perform:
+
+     - The third character is the symbol to write on the tape in place of
+       the previous one.
+
+     - The fourth is  the direction to move the head.  It can be  `L'  or
+       `l' to move to the left, `R' or `r' to move to the right,  or  ` '
+       to stay at the same place.
+
+     - Finally,  the  fifth  character  represents  the  new state of the
+       machine to switch to at the end of the cycle.
+
+   The instructions  are  given  on the standard input of the machine.  The
+   machine  reads  them  all and stores them before starting, so we can put
+   them in a script file.  We added the possibility  to put comments in the
+   ' and extending to the end of the line.
+
+   The user can also give an initial tape, as a string  beginning with `|'.
+   The head will be  automatically set in front of the  leftmost  cell.  Of
+   course,  if no tape are given,  the script provides a blank one.  As the
+   tape is theorically infinite,  we will extend it automatically as needed.
+
+
+   Implementation
+   --------------
+
+   We will use the  Sed  buffer  as  a storage area containing all we need:
+   tape, machine's state, instructions.  We will use the second buffer only
+   for  storage  when  displaying  the  tape  at each cycle.  If you prefer
+   displaying  the  content of the tape only at the end of the program, you
+   can avoid totally use of the second buffer.
+
+   This  script  was  written on the Gnu version of Sed, which one gives no
+   limit for the size of the buffer,  except  the  total  amount  of memory
+   available on the system. So we consider the tape as unlimited.
+
+   The first character in the Sed  buffer  is  the  current  state  of  the
+   machine  (initially   `0').  We  also  reserve  a  second  character  as
+   temporary storage area for the symbole read by the head.
+
+   Next comes the tape, as a character string terminated by a colon `:'. To
+   mark  the  position  of the read head, the current cell is surrounded by
+   two `|'.
+
+   After the  tape are the instructions,  separated by colons.  To find the
+   instruction corresponding  to the current  state,  we  will search for a
+   substring beginning after a colon, and whose first two characters (state
+   and current cell) are the same as the first two of the Sed buffer.
+
+   The understanding of the script is not very easy,  but  the figure below
+   describing  the  Sed  buffer  may  help  to read line by line our Turing
+   machine emulator.
+
+
+      current state of the machine
+      |  content of the read cell
+      |  |
+      |  |         Tape              Instruction       Instruction
+   <------------->   <------------->
+     [0][1][2]...[|][1][|]...[0][:][0][1][1][L][1][:][1][1][0][R][2][:]...
+   ^  ^  ^  ^  ^
+              read-write head       |  |  |  |  |
+                                    |  |  |  |  next state of the machine   
+                                    |  |  |  direction of movement
+                                    |  |  new symbol to write
+                                    |  symbol read on the tape
+                                    current state of the machine
+
+                 Fig. 1 - Content of the Sed buffer.
+
+
+   Usage
+   -----
+
+   To use our machine,  we send  the instruction table and the initial tape
+   on its standard input,  using script files,  with ".tm" (Turing Machine)
+   extension.  It is not very  easy  to  write  real  programs for a Turing
+   machine.  But,  for  example, we  can see a script to increment a binary
+   number.  The  number is written on the tape before starting the program.
+   Our machine will use four states (`0',  `1',  `2',  and `3') and a final
+   stable state `F'.
+
+
+   State 0: We look for the number,  moving  the head to the right until
+   encoutering a `1' or a `0'. When done we switch to state 1.  It takes
+   three instructions:
+
+      +-----------+-----------+-----------+-----------+-----------+
+      |  Current  |  Symbol   | Symbol to |   Move    |   Next    |
+      |   state   |   read    |   write   |   Move    |   State   |
+      +-----------+-----------+-----------+-----------+-----------+
+      |     0     |    ' '    |    ' '    |     R     |     0     |
+      |     0     |    '0'    |    '0'    |     R     |     1     |
+      |     0     |    '1'    |    '1'    |     R     |     1     |
+      +-----------+-----------+-----------+-----------+-----------+
+
+   If we find another symbol on the tape, the machine will automatically
+   stop  (line 54 in the script "turing.sed"), but not on a final stable
+   state.
+
+
+   State 1:  We have found the number,  we will continue until the first
+   space.  Then we move the head  backward one step,  to put it in front
+   of the rightmost binary digit (least significant).
+
+      +-----------+-----------+-----------+-----------+-----------+
+      |  Current  |  Symbol   | Symbol to |   Move    |   Next    |
+      |   state   |   read    |   write   |   Move    |   State   |
+      +-----------+-----------+-----------+-----------+-----------+
+      |     1     |    ' '    |    ' '    |     L     |     2     |
+      |     1     |    '0'    |    '0'    |     R     |     1     |
+      |     1     |    '1'    |    '1'    |     R     |     1     |
+      +-----------+-----------+-----------+-----------+-----------+
+
+
+   State 2:  We want to  increment the binary digit.  If it's a `0',  we
+   overwrite it with a `1' and switch to next state.  If it's a `1',  we
+   overwrite it with a `0', then move the head to the left (on the upper
+   digit) and repeat the state 2.  If  we  have  found a space (the most
+   significant digit was a `1'),  we overwrite it with a  `1' and switch
+   to the next state.
+
+      +-----------+-----------+-----------+-----------+-----------+
+      |  Current  |  Symbol   | Symbol to |   Move    |   Next    |
+      |   state   |   read    |   write   |   Move    |   State   |
+      +-----------+-----------+-----------+-----------+-----------+
+      |     2     |    ' '    |    '1'    |     R     |     3     |
+      |     2     |    '0'    |    '1'    |     R     |     3     |
+      |     2     |    '1'    |    '0'    |     L     |     2     |
+      +-----------+-----------+-----------+-----------+-----------+
+
+
+   State 3:  We move the  head along the tape to the right of the number
+   for  aesthetic  reason  during  final display of the tape.  Then,  we
+   switch to the final stable state `F'.
+
+      +-----------+-----------+-----------+-----------+-----------+
+      |  Current  |  Symbol   | Symbol to |   Move    |   Next    |
+      |   state   |   read    |   write   |   Move    |   State   |
+      +-----------+-----------+-----------+-----------+-----------+
+      |     3     |    ' '    |    ' '    |     R     |     F     |
+      |     3     |    '0'    |    '0'    |     R     |     3     |
+      |     3     |    '1'    |    '1'    |     R     |     3     |
+      +-----------+-----------+-----------+-----------+-----------+
+
+   Let's see the full script,  with  an initial tape containing the decimal
+   number 151, i.e. binary "10010111".
+
+   inc.tm :
+   This script allows a Turing machine to increment a binary number
+   The initial tape with the number:
+      | 10010111
+   State 0
+       0  R0
+       011R1
+       000R1
+   State 1
+       1  L2
+       100R1
+       111R1
+   State 2
+       2 1R3
+       201R3
+       210L2
+   State 3
+       3  RF
+       300R3
+       311R3 
+
+   Here's a  sample run of the script.  We can see the state of the machine
+   in parenthesis on the left, and the content of the tape with the current
+   cell surrounded by two `|'.
+   ./turing.sed inc.tm
+       (0) | |10010111
+       (0)  |1|0010111
+       (1)  1|0|010111
+       (1)  10|0|10111
+       (1)  100|1|0111
+       (1)  1001|0|111
+       (1)  10010|1|11
+       (1)  100101|1|1
+       (1)  1001011|1|
+       (1)  10010111| |
+       (2)  1001011|1|
+       (2)  100101|1|0
+       (2)  10010|1|00
+       (2)  1001|0|000
+       (3)  10011|0|00
+       (3)  100110|0|0
+       (3)  1001100|0|
+       (3)  10011000| |
+       (F)  10011000 | |
+       Final state F reached... end of processing.
+   binary 10011000 = decimal 152 : it works !
+
+   Conclusion
+   ----------
+
+   Writing  scripts  for  a  Turing  machine  is  an intellectual challenge
+   sometimes quite complex.  The  goal  is not to write  real applications.
+   It  would  be too difficult,  and  the  results  would  be  dramatically 
+   inefficient.
+
+   The  real  interest is the fact, as stated in the  Church-Turing thesis,
+   that any computable task  (compilation, text processing, calculation...)
+   can be written on a Turing machine.
+
+   While  emulating  a Turing machine in a Sed script,  we proove that this
+   language is sufficient to perform any computable task !
+   http://perso.club-internet.fr/ccb/
+   #+end_example
+
+   #+begin_src sh
+     cat turing.txt |\
+         tr -cs '[:alpha:]' '\n' |\
+         sort |\
+         uniq -c |\
+         sort -r -t' ' -k1
+   #+end_src
+
+   #+RESULTS:
+   #+begin_example
+
+   > > >  160 the
+     55 of
+     54 a
+     46 to
+     37 machine
+     32 state
+     31 tape
+     28 The
+     24 is
+     22 and
+     21 we
+     21 R
+     18 on
+     16 in
+     16 head
+     15 symbol
+     14 read
+     14 Turing
+     13 script
+     13 for
+     13 can
+     13 as
+     12 write
+     12 State
+     11 with
+     11 cell
+     10 number
+      9 or
+      9 it
+      9 instruction
+      9 current
+      9 We
+      9 Sed
+      8 will
+      8 move
+      8 by
+      8 buffer
+      8 be
+      8 at
+      8 Symbol
+      8 Move
+      7 digit
+      7 character
+      7 This
+      7 If
+      6 use
+      6 one
+      6 new
+      6 instructions
+      6 first
+      6 content
+      6 binary
+      6 any
+      6 L
+      5 two
+      5 this
+      5 switch
+      5 s
+      5 right
+      5 left
+      5 final
+      5 each
+      5 cycle
+      5 beginning
+      5 are
+      5 Next
+      5 F
+      4 them
+      4 standard
+      4 stable
+      4 second
+      4 same
+      4 our
+      4 not
+      4 next
+      4 memory
+      4 line
+      4 its
+      4 initial
+      4 given
+      4 front
+      4 end
+      4 direction
+      4 an
+      4 It
+      4 Current
+      3 written
+      3 very
+      3 tm
+      3 that
+      3 storage
+      3 see
+      3 real
+      3 put
+      3 program
+      3 previous
+      3 place
+      3 perform
+      3 overwrite
+      3 letter
+      3 input
+      3 increment
+      3 i
+      3 e
+      3 cells
+      3 but
+      3 blank
+      3 automatically
+      3 also
+      3 To
+      2 you
+      2 would
+      2 which
+      2 was
+      2 v
+      2 until
+      2 turing
+      2 totally
+      2 there
+      2 theorically
+      2 task
+      2 table
+      2 t
+      2 symbole
+      2 surrounded
+      2 string
+      2 stops
+      2 step
+      2 starting
+      2 space
+      2 significant
+      2 sed
+      2 represents
+      2 reads
+      2 reached
+      2 punctuation
+      2 processing
+      2 possibility
+      2 only
+      2 no
+      2 movement
+      2 mark
+      2 list
+      2 isn
+      2 internet
+      2 infinite
+      2 inc
+      2 have
+      2 fr
+      2 found
+      2 finite
+      2 find
+      2 file
+      2 except
+      2 empty
+      2 easy
+      2 displaying
+      2 display
+      2 decimal
+      2 could
+      2 corresponding
+      2 contains
+      2 containing
+      2 contain
+      2 computable
+      2 colon
+      2 club
+      2 characters
+      2 ccb
+      2 before
+      2 area
+      2 always
+      2 along
+      2 all
+      2 action
+      2 Then
+      2 Machine
+      2 Instruction
+      2 In
+      2 Implementation
+      2 Christophe
+      2 Blaess
+      1 writing
+      1 writes
+      1 works
+      1 whose
+      1 when
+      1 want
+      1 version
+      1 using
+      1 user
+      1 upper
+      1 unlimited
+      1 understanding
+      1 total
+      1 too
+      1 time
+      1 three
+      1 third
+      1 thesis
+      1 then
+      1 text
+      1 terminated
+      1 temporary
+      1 teaching
+      1 takes
+      1 system
+      1 sufficient
+      1 substring
+      1 strings
+      1 stores
+      1 stop
+      1 steps
+      1 stay
+      1 states
+      1 stated
+      1 start
+      1 specified
+      1 sometimes
+      1 so
+      1 size
+      1 simple
+      1 sign
+      1 set
+      1 separated
+      1 send
+      1 selected
+      1 select
+      1 search
+      1 scripts
+      1 sample
+      1 run
+      1 rightmost
+      1 results
+      1 result
+      1 restarts
+      1 reserve
+      1 representing
+      1 represent
+      1 repeat
+      1 reason
+      1 reading
+      1 r
+      1 quite
+      1 purposes
+      1 provides
+      1 proove
+      1 programs
+      1 programmable
+      1 printing
+      1 prefer
+      1 possible
+      1 position
+      1 ponding
+      1 perso
+      1 parenthesis
+      1 output
+      1 ones
+      1 non
+      1 needed
+      1 need
+      1 moving
+      1 moves
+      1 most
+      1 moment
+      1 mentation
+      1 may
+      1 magnetic
+      1 made
+      1 lying
+      1 look
+      1 loads
+      1 limit
+      1 leftmost
+      1 least
+      1 language
+      1 l
+      1 keep
+      1 introduced
+      1 into
+      1 interest
+      1 intellectual
+      1 insert
+      1 initially
+      1 initialize
+      1 inefficient
+      1 important
+      1 implementation
+      1 imple
+      1 if
+      1 http
+      1 help
+      1 has
+      1 goal
+      1 gives
+      1 give
+      1 full
+      1 fourth
+      1 four
+      1 follows
+      1 five
+      1 files
+      1 figure
+      1 fifth
+      1 fields
+      1 fact
+      1 extension
+      1 extending
+      1 extend
+      1 execution
+      1 excepted
+      1 example
+      1 etc
+      1 erasing
+      1 encoutering
+      1 emulator
+      1 emulating
+      1 emulates
+      1 during
+      1 dramatically
+      1 done
+      1 divided
+      1 difficult
+      1 device
+      1 determined
+      1 describing
+      1 default
+      1 course
+      1 corres
+      1 continue
+      1 consider
+      1 computation
+      1 complex
+      1 compilation
+      1 comments
+      1 comes
+      1 colons
+      1 choose
+      1 challenge
+      1 calculation
+      1 below
+      1 being
+      1 behavior
+      1 begining
+      1 been
+      1 because
+      1 backward
+      1 avoid
+      1 available
+      1 applications
+      1 appears
+      1 another
+      1 amount
+      1 allows
+      1 after
+      1 aesthetic
+      1 added
+      1 add
+      1 act
+      1 according
+      1 accept
+      1 Writing
+      1 While
+      1 When
+      1 Usage
+      1 Tape
+      1 So
+      1 Script
+      1 RF
+      1 Our
+      1 Otherwise
+      1 Of
+      1 Let
+      1 Introduction
+      1 Here
+      1 Gnu
+      1 For
+      1 Finally
+      1 Final
+      1 Fig
+      1 Content
+      1 Conclusion
+      1 Church
+      1 By
+      1 But
+      1 At
+      1 As
+      1 An
+      1 Alan
+      1 After
+      1 A
+      1
+   #+end_example
