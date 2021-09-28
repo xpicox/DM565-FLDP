@@ -1,0 +1,158 @@
+#+STARTUP: showall
+#+STARTUP: hideblocks
+#+PROPERTY: header-args:sh :results output
+* Compilers
+ 
+** 1
+   Consider the visitor example and explain why, in LeavesVisitor, it is OK to
+   omit code for Node, and why recursive traversal through the Nodes still take
+   place. Make a PrettyPrintVisitor where you use indentation in some way you
+   define yourself to print the entire tree in a form where one can graphically
+   identify the subtrees. The purpose of this exercise is to explain visitor
+   patterns, which are used in the SCIL compiler, in a simpler setting.
+   
+   #+begin_src python
+     class PrettyPrintVisitor(VisitorsBase):
+         def __init__(self):
+             self.indentation = 0
+             self.step = 3
+     
+         def preVisit_Node(self, t):
+             print( " " * self.indentation + str(t.value) )
+             self.indentation += self.step
+     
+         def postVisit_Node(self, t):
+             self.indentation -= self.step
+     
+         def visit_Leaf(self, t):
+             print( " " * self.indentation + str(t.value) )
+   #+end_src
+
+** 2
+   Resolve possible problems with downloading and running SCIL.
+   
+** 3
+   Get a feeling for the syntax of SCIL just by looking at a few programs in the
+   Test directory. Write a program with two functions, both with one argument,
+   n. One function should iteratively add the numbers from 1 through n, and the
+   other should obtain the same recursively. Print the two results for
+   confirmation. ツ
+
+   #+begin_src javascript
+     function f_iteratively( n ){
+         var i, res
+         i = 1;
+         res = 0;
+         while i <= n do {
+             res = res + i;
+             i = i + 1;
+         }
+         return res;
+     }
+          
+     function f_recursively( n ){
+         if n <= 1 then
+             return 1;
+         else
+             return n + f_recursively( n - 1 );
+     
+     
+     print f_iteratively( 5 );
+     print f_recursively( 5 );
+   #+end_src
+   
+** 4
+   Make changes in lexer_parser.py:
+  
+*** 1
+    Allow the user to choose between using the keyword while and the keyword
+    as_long_as.
+
+    Line 220:
+    #+begin_src python
+      def p_statement_while(t):
+          '''statement_while :  WHILE expression DO statement
+                             |  AS_LONG_AS expression DO statement'''
+          t[0] = AST.statement_while(t[2], t[4], t.lexer.lineno)
+    #+end_src
+
+*** 2
+    Change the end-of-statement symbol from semicolon to period.
+    
+    #+begin_src pyhton
+        # t_SEMICOL = r';' Line 48/49
+        t_SEMICOL = r'.'
+    #+end_src
+
+    Or add new token COLON and fix grammar as well
+
+*** 3
+    Allow vertical lines for line-up, so this is a legal program:
+
+    #+begin_example
+    while i < 10 do {
+    |  s = s + i;
+    |  i = i + 1;
+    |  if i == 10 then {
+    |  |  print 42;
+    |  } else {
+    |  |  dummy = 0;
+    |  }
+    }
+    #+end_example
+
+    You are not supposed to check that the user uses the line-up in any
+    particular way; you just have to allow the symbol. Note that an if-statement
+    must include an else-part.
+
+    Line 85:
+    #+begin_src python
+      # Ignored characters
+      t_ignore = "| \t\r"  # \r included for the sake of windows users
+    #+end_src
+
+*** 4
+    Explain what happens if the line 
+    #+begin_src python
+      t.lexer.lineno += t.value.count("\n")
+    #+end_src
+    is changed to
+    #+begin_src python
+      t.lexer.lineno += 1
+    #+end_src
+
+** 5
+   Define the following three regular expressions:
+
+*** 1
+    
+*** 2
+
+*** 3
+
+** 6
+   Make and test the following four Flex scanners:
+
+   #+begin_src sh
+     flex lexer-6.1.l
+   #+end_src
+
+   #+begin_src sh
+     gcc lex.yy.c -o a.out
+   #+end_src
+*** 1
+    Make texts (more) politically correct by replacing "idiot" with
+    "intellectually challenged person", etc.
+    
+*** 2
+    Remove all whitespace and produce lines in lengths of 80 characters.
+*** 3
+    Replace all sequences of whitespace with one blank and produce lines as long
+    as possible, but at most 80 characters, by dividing only at blanks (that is,
+    between words).
+*** 4
+    Remove all tags from an HTML document. For those who do not speak HTML
+    fluently, HTML is just regular text with some extra interpreted
+    constructions. A tag consists of a "less than" symbol followed by some text
+    and closed by a "greater than" symbol, or it might have slash after the
+    "less than" symbol (you can view the source of this page to see an example).
