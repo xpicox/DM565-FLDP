@@ -1,7 +1,7 @@
 #+STARTUP: showall
 #+STARTUP: hideblocks
 #+PROPERTY: header-args:sh :results output
-* Compilers
+* Introduction to Compilers. Scanners. Flex.
  
 ** 1
    Consider the visitor example and explain why, in LeavesVisitor, it is OK to
